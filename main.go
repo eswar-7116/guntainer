@@ -29,7 +29,7 @@ func main() {
 
 func parent() {
 	if len(os.Args) < 3 {
-		os.Args = append(os.Args, "bash")
+		os.Args = append(os.Args, "sh")
 	}
 
 	// Check if already in child
