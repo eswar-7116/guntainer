@@ -103,6 +103,7 @@ func child(pipe *os.File) {
 		throwError("unauthorized child entry")
 	}
 
+	syscall.Sethostname([]byte("guntainer"))
 	rootfsPath := filepath.Join(os.TempDir(), RootfsName)
 	fmt.Println(">> init: chroot to", rootfsPath)
 	must(syscall.Chroot(rootfsPath))
