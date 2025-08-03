@@ -16,15 +16,29 @@ const (
 
 func main() {
 	if len(os.Args) < 2 {
-		throwError("no sub-command provided")
+		printHelp()
+		return
 	}
 
 	switch os.Args[1] {
 	case "run":
 		parent()
+	case "help", "--help", "-h":
+		printHelp()
 	default:
 		throwError("invalid sub-command.\nTry running: guntainer run /bin/sh")
 	}
+}
+
+func printHelp() {
+	fmt.Println(`Usage: guntainer <command> [args...]
+
+Available commands:
+  run <program>     Run a program inside a container (default: sh)
+  help              Show this help message
+
+Example:
+  guntainer run /bin/sh`)
 }
 
 func parent() {
