@@ -26,7 +26,7 @@ func main() {
 	case "help", "--help", "-h":
 		printHelp()
 	default:
-		throwError("invalid sub-command.\nTry running: guntainer run /bin/sh")
+		throwError("invalid sub-command.\nTry running: guntainer run /bin/bash")
 	}
 }
 
@@ -38,7 +38,7 @@ Available commands:
   help              Show this help message
 
 Example:
-  guntainer run /bin/sh`)
+  guntainer run /bin/bash`)
 }
 
 func parent() {
