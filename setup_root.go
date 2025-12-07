@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	alpineURL      = "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/x86_64/alpine-minirootfs-3.22.0-x86_64.tar.gz"
-	RootfsName     = "guntainer-alpine-rootfs"
-	cacheDir       = ".cache/guntainer"
-	tarballRelPath = cacheDir + "/alpine-3.22.0.tar.gz"
+	rootfsTarballURL = "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.3-base-amd64.tar.gz"
+	RootfsName       = "guntainer-ubuntu-rootfs"
+	cacheDir         = ".cache/guntainer"
+	tarballRelPath   = cacheDir + "/ubuntu-base-24.04.3-amd64.tar.gz"
 )
 
 func SetupRoot() error {
@@ -28,7 +28,7 @@ func SetupRoot() error {
 	tarballPath := filepath.Join(os.Getenv("HOME"), tarballRelPath)
 	if _, err := os.Stat(tarballPath); os.IsNotExist(err) {
 		fmt.Printf("Tarball not found at %s. Downloading...\n", tarballPath)
-		if err := downloadFile(alpineURL, tarballPath); err != nil {
+		if err := downloadFile(rootfsTarballURL, tarballPath); err != nil {
 			return err
 		}
 		fmt.Println("Download completed.")
