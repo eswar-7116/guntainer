@@ -26,7 +26,7 @@ func main() {
 	case "help", "--help", "-h":
 		printHelp()
 	default:
-		throwError("invalid sub-command.\nTry running: guntainer run /bin/bash")
+		throwError("Error: invalid sub-command.\nTry running: guntainer run /bin/bash")
 	}
 }
 
@@ -56,10 +56,10 @@ func parent() {
 	SetupRoot()
 
 	r, w, err := os.Pipe()
-	must(err)
+	must(err, "creating pipe")
 
 	_, err = w.Write([]byte(PIPE_MSG))
-	must(err)
+	must(err, "writing to pipe")
 	w.Close()
 
 	cmd := exec.Command("/proc/self/exe", append([]string{"run"}, os.Args[2:]...)...)
@@ -92,7 +92,7 @@ func parent() {
 	}
 
 	fmt.Println(">> Entering container")
-	must(cmd.Run())
+	must(cmd.Run(), "running the container process")
 }
 
 func child(pipe *os.File) {
@@ -100,15 +100,15 @@ func child(pipe *os.File) {
 	n, err := pipe.Read(buf)
 	pipe.Close()
 	if err != nil || pipe.Name() != PIPE_NAME || string(buf[:n]) != PIPE_MSG {
-		throwError("unauthorized child entry")
+		throwError("Error: unauthorized child entry")
 	}
 
 	syscall.Sethostname([]byte("guntainer"))
 	rootfsPath := filepath.Join(os.TempDir(), RootfsName)
 	fmt.Println(">> init: chroot to", rootfsPath)
-	must(syscall.Chroot(rootfsPath))
-	must(os.Chdir("/"))
-	must(syscall.Mount("proc", "proc", "proc", 0, ""))
+	must(syscall.Chroot(rootfsPath), "changing root in container")
+	must(os.Chdir("/"), "changing directory to container root")
+	must(syscall.Mount("proc", "proc", "proc", 0, ""), "mount proc directory")
 
 	fmt.Printf(">> running %s\n", os.Args[2])
 	cmd := exec.Command(os.Args[2], os.Args[3:]...)
@@ -116,18 +116,18 @@ func child(pipe *os.File) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	must(cmd.Run())
+	must(cmd.Run(), "running "+os.Args[2]+" in the container")
 
-	must(syscall.Unmount("proc", 0))
+	must(syscall.Unmount("proc", 0), "unmounting proc directory")
 }
 
-func must(err error) {
+func must(err error, when string) {
 	if err != nil {
-		throwError(err.Error())
+		throwError("Error while " + when + ": " + err.Error())
 	}
 }
 
 func throwError(msg string) {
-	fmt.Fprintln(os.Stderr, "Error:", msg)
+	fmt.Fprintln(os.Stderr, msg)
 	os.Exit(1)
 }
