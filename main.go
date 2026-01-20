@@ -62,15 +62,18 @@ func parent() {
 	must(err, "writing to pipe")
 	w.Close()
 
+	// Child process command
 	cmd := exec.Command("/proc/self/exe", append([]string{"run"}, os.Args[2:]...)...)
 
 	cmd.Env = append(os.Environ(), CHILD_ENV_KEY+"=1")
 	cmd.ExtraFiles = append(cmd.ExtraFiles, r)
 
+	// Assign input, output and error streams
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	// Isolate namespaces and users
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWIPC | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWUSER,
 		Unshareflags: syscall.CLONE_NEWNS,
@@ -103,15 +106,16 @@ func child(pipe *os.File) {
 		throwError("Error: unauthorized child entry")
 	}
 
+	// Set new hostname
 	syscall.Sethostname([]byte("guntainer"))
 	rootfsPath := filepath.Join(os.TempDir(), RootfsName)
 	fmt.Println(">> init: chroot to", rootfsPath)
-	must(syscall.Chroot(rootfsPath), "changing root in container")
-	must(os.Chdir("/"), "changing directory to container root")
-	must(syscall.Mount("proc", "proc", "proc", 0, ""), "mount proc directory")
+	must(syscall.Chroot(rootfsPath), "changing root in container")  // Change root filesystem
+	must(os.Chdir("/"), "changing directory to container root")  // Change current directory to root
+	must(syscall.Mount("proc", "proc", "proc", 0, ""), "mount proc directory")  // Mount /proc
 
 	fmt.Printf(">> running %s\n", os.Args[2])
-	cmd := exec.Command(os.Args[2], os.Args[3:]...)
+	cmd := exec.Command(os.Args[2], os.Args[3:]...)  // Given command
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
